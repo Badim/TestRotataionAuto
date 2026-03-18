@@ -2,6 +2,8 @@
 local composer = require("composer");
 local scene = composer.newScene();
 scene.orientation = "h";
+--------------------------------------------------------------------------------------
+local widget = require("widget");
 -- -----------------------------------------------------------------------------------
 local gameGroup;
 local UIs = {};
@@ -48,6 +50,49 @@ function scene:create( event )
 		composer.gotoScene("pageMenu");
 	end);
 	table.insert(UIs, btn);
+	
+	local scrollW, scrollH = W-120, 160;
+	local scrollView = widget.newScrollView({
+		-- parent = gameGroup,
+		top = 0,
+		left = 0,
+		width = scrollW,
+		height = scrollH,
+		scrollWidth = scrollW,
+		scrollHeight = scrollH,
+		-- listener = scrollListener,
+		verticalScrollDisabled = true,
+		friction = .96,
+		-- hideBackground = true,
+		listener  = function(event)
+			-- print("phase:", event.phase, event.limitReached, event.direction);
+			-- print("xy:", event.x, event.y);
+			-- for attr,value in pairs(event) do
+				-- print(attr, value);
+			-- end
+			-- print(event.target.x, event.target.y);
+			-- print("---");
+			-- xDelta
+			-- yDelta
+			-- xStart
+			-- yStart
+			-- target
+			
+		end
+	})
+	scrollView.x, scrollView.y = W/2, H - 280;
+	gameGroup:insert(scrollView);
+	
+	for i=0,40 do
+		local itemmc=newGroup(scrollView);
+		itemmc.x, itemmc.y = i*90, scrollH/2;
+		
+		local itemBody = display.newImage(itemmc, "Icon.png");
+		itemBody.rotation = math.random(1, 360);
+		
+		local itemTxt = display.newText(itemmc, i, 0, 0, nil, 24);
+		itemTxt:setFillColor(0);
+	end
 end
 
 function scene:resize( event )
