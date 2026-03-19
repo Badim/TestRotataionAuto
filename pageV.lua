@@ -49,6 +49,21 @@ function scene:create( event )
 		composer.gotoScene("pageMenu");
 	end);
 	table.insert(UIs, btn);
+	
+	local mc = newGroup(gameGroup);
+	-- mc.x, mc.y = 160, H-200;
+	local r = display.newRect(mc, 0, 0, 160, 60);
+	r.alpha = 1/3;
+	local dtxt0 = display.newText(mc, '"width X height" vs "contentWidth X contentHight"', 0, -46, nil, 22);
+	local dtxt1 = display.newText(mc, "WxH", 0, -18, nil, 18);
+	local dtxt2 = display.newText(mc, "WxH", 0, 18, nil, 18);
+	function mc:updateXY()
+		mc.x, mc.y = W/2, H-200;
+		dtxt1.text = r.width .. "x" .. r.height;
+		dtxt2.text = r.contentWidth .. "x" .. r.contentHeight;
+	end
+	mc:updateXY();
+	table.insert(UIs, mc);
 end
 
 function scene:resize( event )
