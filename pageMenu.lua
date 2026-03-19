@@ -38,18 +38,6 @@ function scene:create( event )
 		composer.gotoScene("pageH");
 	end);
 	table.insert(UIs, btn2);
-	
-	local mc = newGroup(gameGroup);
-	mc.x, mc.y = 200, 200;
-	local r = display.newRect(mc, 0, 0, 160, 40);
-	r.alpha = 1/3;
-	local dtxt = display.newText(mc, "WxH", 0, 0, nil, 20);
-	function mc:updateXY()
-		mc.x, mc.y = 200, 200;
-		dtxt.text = r.contentWidth .. "x" .. r.contentHeight;
-	end
-	mc:updateXY();
-	table.insert(UIs, mc);
 end
 
 function scene:resize( event )
