@@ -3,7 +3,7 @@ local composer = require("composer");
 local scene = composer.newScene();
 scene.orientation = "h";
 --------------------------------------------------------------------------------------
-local widget = require("widget");
+local rotatableScrollView = require("rotatableScrollView");
 -- -----------------------------------------------------------------------------------
 local gameGroup;
 local UIs = {};
@@ -52,33 +52,19 @@ function scene:create( event )
 	table.insert(UIs, btn);
 	
 	local scrollW, scrollH = W-120, 160;
-	local scrollView = widget.newScrollView({
-		-- parent = gameGroup,
-		top = 0,
-		left = 0,
+	-- scrollWidth must cover laid-out content (widget scrollWidth was same as viewport; that yields no scroll room).
+	local itemPitch = 90
+	local numItems = 41
+	local scrollView = rotatableScrollView.newScrollView({
 		width = scrollW,
 		height = scrollH,
-		scrollWidth = scrollW,
+		scrollWidth = (numItems) * itemPitch,
 		scrollHeight = scrollH,
-		-- listener = scrollListener,
 		verticalScrollDisabled = true,
-		friction = .96,
-		-- hideBackground = true,
-		listener  = function(event)
-			-- print("phase:", event.phase, event.limitReached, event.direction);
-			-- print("xy:", event.x, event.y);
-			-- for attr,value in pairs(event) do
-				-- print(attr, value);
-			-- end
-			-- print(event.target.x, event.target.y);
-			-- print("---");
-			-- xDelta
-			-- yDelta
-			-- xStart
-			-- yStart
-			-- target
-			
-		end
+		friction = 0.96,
+		listener = function(event)
+			-- print("phase:", event.phase, event.x, event.y)
+		end,
 	})
 	scrollView.x, scrollView.y = W/2, H - 280;
 	gameGroup:insert(scrollView);
