@@ -1,14 +1,18 @@
 --[[
   Scroll view that works when placed inside a rotated/scaled parent.
-  Uses display.newContainer for clipping and contentToLocal() for touch deltas
-  (widget.newScrollView assumes un-transformed coordinates and breaks under rotation).
+  Uses display.newContainer for clipping and contentToLocal() for touch deltas.
 
-  API subset compatible with widget.newScrollView for common options:
-    parent, left, top, width, height, scrollWidth, scrollHeight,
+  Solar2D containers clip around their origin with default anchor 0.5/0.5: child (0,0)
+  is the viewport center, not the top-left. This module aligns bg/touch/content to that
+  system and clamps scroll in the same local space.
+
+  Options (subset of widget.newScrollView):
+    width, height, scrollWidth, scrollHeight,
     verticalScrollDisabled, horizontalScrollDisabled, friction, hideBackground, listener,
-    captureTouchesOnOverlay (default true): full-viewport hit layer on top so dragging works.
-    Set false if you need taps on row items — then set those objects isHitTestable = false so
-    the scroll view (below) receives drags, or handle scroll differently.
+    parent, left, top,
+    captureTouchesOnOverlay (default true),
+    debugDraw (default false): viewport stroke, content-bounds fill+stroke, optional HUD text,
+    anchorX, anchorY (default 0.5): container placement; x/y are the viewport center.
 ]]
 
 local M = {}
@@ -24,22 +28,27 @@ function M.newScrollView(options)
 	local friction = (options.friction ~= nil) and options.friction or 0.96
 	local hideBackground = options.hideBackground == true
 	local listener = options.listener
-	-- Topmost hit layer so drags work (otherwise icons/text receive touches first).
 	local useTouchOverlay = options.captureTouchesOnOverlay ~= false
+	local debugDraw = options.debugDraw == true
 
-	local minX = math.min(0, viewW - scrollW)
-	local maxX = 0
-	local minY = math.min(0, viewH - scrollH)
-	local maxY = 0
+	-- Container local space: origin at viewport CENTER (default newContainer behavior).
+	local maxX = -viewW * 0.5
+	local minX = viewW * 0.5 - scrollW
+	if minX > maxX then
+		minX = maxX
+	end
+	local maxY = -viewH * 0.5
+	local minY = viewH * 0.5 - scrollH
+	if minY > maxY then
+		minY = maxY
+	end
 
 	local container = display.newContainer(viewW, viewH)
-	container.anchorX = 0
-	container.anchorY = 0
+	container.anchorX = (options.anchorX ~= nil) and options.anchorX or 0.5
+	container.anchorY = (options.anchorY ~= nil) and options.anchorY or 0.5
 
 	if not hideBackground then
 		local bg = display.newRect(0, 0, viewW, viewH)
-		bg.anchorX = 0
-		bg.anchorY = 0
 		bg:setFillColor(0.25, 0.25, 0.25, 0.35)
 		container:insert(bg)
 	end
@@ -47,14 +56,53 @@ function M.newScrollView(options)
 	local content = display.newGroup()
 	container:insert(content)
 
+	-- Start with left/top of scroll content aligned to viewport left/top (center-origin space).
+	content.x = maxX
+	content.y = maxY
+
+	local debugViewportRect, debugContentRect, debugHud
+
+	if debugDraw then
+		debugViewportRect = display.newRect(0, 0, viewW, viewH)
+		debugViewportRect:setFillColor(0, 0, 0, 0)
+		debugViewportRect:setStrokeColor(0, 1, 0)
+		debugViewportRect.strokeWidth = 2
+		debugViewportRect.isHitTestable = false
+		container:insert(debugViewportRect)
+
+		debugContentRect = display.newRect(scrollW * 0.5, scrollH * 0.5, scrollW, scrollH)
+		debugContentRect:setFillColor(1, 1, 0, 0.12)
+		debugContentRect:setStrokeColor(1, 0, 0)
+		debugContentRect.strokeWidth = 2
+		debugContentRect.isHitTestable = false
+		content:insert(1, debugContentRect)
+
+		debugHud = display.newText(container, "", 0, -viewH * 0.5 - 14, native.systemFont, 11)
+		debugHud:setFillColor(0, 1, 1)
+		debugHud.anchorY = 1
+		debugHud.isHitTestable = false
+	end
+
 	local touchRect
 	if useTouchOverlay then
 		touchRect = display.newRect(0, 0, viewW, viewH)
-		touchRect.anchorX = 0
-		touchRect.anchorY = 0
 		touchRect:setFillColor(1, 1, 1, 0.01)
 		container:insert(touchRect)
 		container._touchRect = touchRect
+	end
+
+	local function updateDebugHud()
+		if debugHud then
+			debugHud.text = string.format(
+				"content: %.0f, %.0f  |  clamp X [%.0f..%.0f]  Y [%.0f..%.0f]",
+				content.x,
+				content.y,
+				minX,
+				maxX,
+				minY,
+				maxY
+			)
+		end
 	end
 
 	local prevLX, prevLY
@@ -103,6 +151,9 @@ function M.newScrollView(options)
 		if listener and (content.x ~= prevX or content.y ~= prevY) then
 			listener({ phase = "moved", target = container, x = content.x, y = content.y })
 		end
+		if debugDraw then
+			updateDebugHud()
+		end
 	end
 
 	local function startMomentum()
@@ -118,7 +169,6 @@ function M.newScrollView(options)
 	end
 
 	local function onTouch(event)
-		-- Viewport-local deltas; correct under parent rotation/scale (not event.target).
 		local lx, ly = container:contentToLocal(event.x, event.y)
 		local target = event.target
 
@@ -134,6 +184,9 @@ function M.newScrollView(options)
 			target.isFocus = true
 			if listener then
 				listener({ phase = "began", target = container, x = content.x, y = content.y })
+			end
+			if debugDraw then
+				updateDebugHud()
 			end
 			return true
 		end
@@ -170,6 +223,9 @@ function M.newScrollView(options)
 			if listener then
 				listener({ phase = "moved", target = container, x = content.x, y = content.y })
 			end
+			if debugDraw then
+				updateDebugHud()
+			end
 			return true
 		end
 
@@ -181,6 +237,9 @@ function M.newScrollView(options)
 				listener({ phase = event.phase, target = container, x = content.x, y = content.y })
 			end
 			startMomentum()
+			if debugDraw then
+				updateDebugHud()
+			end
 			return true
 		end
 
@@ -199,7 +258,6 @@ function M.newScrollView(options)
 		container:addEventListener("touch", container)
 	end
 
-	-- User content: same as widget — insert into scroll content (not container shell).
 	function container:insert(obj)
 		return content:insert(obj)
 	end
@@ -215,6 +273,9 @@ function M.newScrollView(options)
 			x = x or content.x,
 			y = y or content.y,
 			time = time or 400,
+			onComplete = function()
+				clampPos()
+			end,
 		})
 	end
 
@@ -226,6 +287,10 @@ function M.newScrollView(options)
 	end
 	if options.parent then
 		options.parent:insert(container)
+	end
+
+	if debugDraw then
+		updateDebugHud()
 	end
 
 	return container

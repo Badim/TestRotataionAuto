@@ -62,6 +62,7 @@ function scene:create( event )
 		scrollHeight = scrollH,
 		verticalScrollDisabled = true,
 		friction = 0.96,
+		debugDraw = true, -- green = viewport clip; yellow/red = full scroll content bounds; cyan = HUD
 		listener = function(event)
 			-- print("phase:", event.phase, event.x, event.y)
 		end,
