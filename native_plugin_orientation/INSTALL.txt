@@ -1,0 +1,32 @@
+================================================================================
+plugin.orientation — INSTALL TODO (Android runtime orientation)
+================================================================================
+Full instructions: README.md in this folder.
+
+[ ] 1. Install Solar2D + Solar2D Native (Project Template with android/plugin).
+
+[ ] 2. Copy LuaLoader.java to Native template:
+        plugin/src/main/java/plugin/orientation/LuaLoader.java
+        (from: native_plugin_orientation/android/plugin/src/main/java/...)
+
+[ ] 3. Android Studio: open template "android", build plugin module, get .jar output.
+
+[ ] 4. Place JAR per Solar2D (local plugins folder, Solar2DPlugins, or hosted .tgz).
+
+[ ] 5. build.settings:
+        plugins = { ["plugin.orientation"] = { publisherId = "YOUR.ID" }, }
+
+[ ] 6. Lua:
+        local o = require("plugin.orientation")
+        o.set("landscape")   -- or portrait, sensor, user, etc.
+
+[ ] 7. Test on device. Simulator: use plugins/plugin.orientation.lua stub if needed.
+
+[ ] iOS: NOT included — needs separate Xcode .a plugin.
+
+================================================================================
+Repo paths:
+  Java:   native_plugin_orientation/android/.../LuaLoader.java
+  Stub:   plugins/plugin.orientation.lua
+  Hint:   build.settings (commented plugin line)
+================================================================================

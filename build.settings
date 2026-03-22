@@ -44,6 +44,8 @@ settings =
 	--
 	-- Plugins section
 	--
+	-- Runtime orientation (Android): see native_plugin_orientation/README.md
+	-- plugins = { ["plugin.orientation"] = { publisherId = "com.yourcompany" }, },
 	plugins =
 	{
 
