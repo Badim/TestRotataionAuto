@@ -3,7 +3,7 @@ local composer = require("composer");
 local scene = composer.newScene();
 scene.orientation = "h";
 --------------------------------------------------------------------------------------
-local rotatableScrollView = require("rotatableScrollView");
+local rotatableScrollView = require("Libs.rotatableScrollView");
 -- -----------------------------------------------------------------------------------
 local gameGroup;
 local UIs = {};
